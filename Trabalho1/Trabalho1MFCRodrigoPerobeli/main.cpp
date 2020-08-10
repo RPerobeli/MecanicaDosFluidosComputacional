@@ -41,6 +41,24 @@ void SalvaArquivo(MatrixXf M, FILE *arquivo, VectorXf tempo, VectorXf X)
         fclose(arquivo);
     }
 }
+
+void SalvaArquivoSemTempo(MatrixXf M, FILE *arquivo, VectorXf X)
+{
+    arquivo = fopen("SolucaoTrabalho1SemTempo.dat","w");
+    if(!arquivo)
+    {
+        printf("\nerro ao abrir arquivo");
+    }else
+    {
+        int i = M.rows()-1;
+        for(int j=0;j<M.cols();j++)
+        {
+           fprintf(arquivo, "%f  \n", M(i,j));
+        }
+        cout << "arquivo atualizado" <<endl;
+        fclose(arquivo);
+    }
+}
 /*----------------------------------------------------------------------------------------------------------------------------------------------*/
 class Upwind
 {
@@ -79,12 +97,10 @@ public:
             float num_a = 2-3*abs(theta)+theta*theta;
             float den_a = 7 - 6*theta- 3*abs(theta)+ 2*theta*theta;
             this->a = num_a/den_a;
-            cout<<"a: "<< a << endl;
 
             float num_b = -4+6*theta- 3*abs(theta)+ theta*theta;
             float den_b = -5+ 6*theta - 3*abs(theta) + 2*theta*theta;
             this->b = num_b/den_b;
-            cout<<"b: "<< b << endl;
         }
         }
 
@@ -99,25 +115,25 @@ public:
             //calcula as propriedade convectada qdo a velocidade de transporte é positiva
             if(j == 1)
             {
-                v(k)= M(i,j-1);
+                v(0)= 0.5*(M(i,j-1)+M(i,j));
             }else
             {
-                float phi_chapeu = (M(i,j-1+k)-M(i,j-2+k))/(M(i,j+k)-M(i,j-2+k));
+                float phi_chapeu = (M(i,j-1)-M(i,j-2))/(M(i,j)-M(i,j-2));
                 if(phi_chapeu<0 || 1<phi_chapeu)
                 {
-                    v(k)= M(i,j-1+k);
+                    v(0)= M(i,j-1);
                 }else if(phi_chapeu>=0 && phi_chapeu<a)
                 {
                     float A = (2-theta)*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(0) = M(i,j-2) + (M(i,j)-M(i,j-2))*A;
                 }else if(phi_chapeu>=a && phi_chapeu<=b)
                 {
                     float A = phi_chapeu+0.5*(1-abs(theta))-(1/6)*(1-theta*theta)*(1-2*phi_chapeu);
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(0) = M(i,j-2) + (M(i,j)-M(i,j-2))*A;
                 }else if(phi_chapeu>b && phi_chapeu<=1)
                 {
                     float A = 1-theta+theta*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(0) = M(i,j-2) + (M(i,j)-M(i,j-2))*A;
                 }
             }
 
@@ -125,27 +141,27 @@ public:
         if(u_g<0.0)
         {
             //calcula as propriedade convectada qdo a velocidade de transporte é positiva
-            if(j == 1)
+            if(fabs(M(i,j-1)-M(i,j+1)) <= threshold)
             {
-                v(k)= M(i,j-1);
+                v(0) = M(i,j);
             }else
             {
-                float phi_chapeu = (M(i,j-1+k)-M(i,j-2+k))/(M(i,j+k)-M(i,j-2+k));
+                float phi_chapeu = (M(i,j)-M(i,j+1))/(M(i,j-1)-M(i,j+1));
                 if(phi_chapeu<0 || 1<phi_chapeu)
                 {
-                    v(k)= M(i,j-1+k);
+                    v(0)= M(i,j);
                 }else if(phi_chapeu>=0 && phi_chapeu<a)
                 {
                     float A = (2-theta)*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(0) = M(i,j+1) + (M(i,j-1)-M(i,j+1))*A;
                 }else if(phi_chapeu>=a && phi_chapeu<=b)
                 {
                     float A = phi_chapeu+0.5*(1-abs(theta))-(1/6)*(1-theta*theta)*(1-2*phi_chapeu);
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(0) = M(i,j+1) + (M(i,j-1)-M(i,j+1))*A;
                 }else if(phi_chapeu>b && phi_chapeu<=1)
                 {
                     float A = 1-theta+theta*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(0) = M(i,j+1) + (M(i,j-1)-M(i,j+1))*A;
                 }
             }
 
@@ -153,27 +169,27 @@ public:
         if(u_f>=0.0)
         {
             //calcula as propriedade convectada qdo a velocidade de transporte é positiva
-            if(j == 1)
+            if(fabs(M(i,j+1)-M(i,j-1)) <= threshold)
             {
-                v(k)= M(i,j-1);
+                v(1)= M(i,j);
             }else
             {
-                float phi_chapeu = (M(i,j-1+k)-M(i,j-2+k))/(M(i,j+k)-M(i,j-2+k));
+                float phi_chapeu = (M(i,j)-M(i,j-1))/(M(i,j+1)-M(i,j-1));
                 if(phi_chapeu<0 || 1<phi_chapeu)
                 {
-                    v(k)= M(i,j-1+k);
+                    v(1)= M(i,j);
                 }else if(phi_chapeu>=0 && phi_chapeu<a)
                 {
                     float A = (2-theta)*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(1) = M(i,j-1) + (M(i,j+1)-M(i,j-1))*A;
                 }else if(phi_chapeu>=a && phi_chapeu<=b)
                 {
                     float A = phi_chapeu+0.5*(1-abs(theta))-(1/6)*(1-theta*theta)*(1-2*phi_chapeu);
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(1) = M(i,j-1) + (M(i,j+1)-M(i,j-1))*A;
                 }else if(phi_chapeu>b && phi_chapeu<=1)
                 {
                     float A = 1-theta+theta*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(1) = M(i,j-1) + (M(i,j+1)-M(i,j-1))*A;
                 }
             }
 
@@ -181,27 +197,27 @@ public:
         if(u_f<0.0)
         {
             //calcula as propriedade convectada qdo a velocidade de transporte é positiva
-            if(j == 1)
+            if(j == M.cols()-2)
             {
-                v(k)= M(i,j-1);
+                v(1)= 0.5*(M(i,j-1)+M(i,j+1));
             }else
             {
-                float phi_chapeu = (M(i,j-1+k)-M(i,j-2+k))/(M(i,j+k)-M(i,j-2+k));
+                float phi_chapeu = (M(i,j+1)-M(i,j+2))/(M(i,j)-M(i,j+2));
                 if(phi_chapeu<0 || 1<phi_chapeu)
                 {
-                    v(k)= M(i,j-1+k);
+                    v(1)= M(i,j+1);
                 }else if(phi_chapeu>=0 && phi_chapeu<a)
                 {
                     float A = (2-theta)*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(1) = M(i,j+2) + (M(i,j)-M(i,j+2))*A;
                 }else if(phi_chapeu>=a && phi_chapeu<=b)
                 {
                     float A = phi_chapeu+0.5*(1-abs(theta))-(1/6)*(1-theta*theta)*(1-2*phi_chapeu);
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(1) = M(i,j+2) + (M(i,j)-M(i,j+2))*A;
                 }else if(phi_chapeu>b && phi_chapeu<=1)
                 {
                     float A = 1-theta+theta*phi_chapeu;
-                    v(k) = M(i,j-2+k) + (M(i,j+k)-M(i,j-2+k))*A;
+                    v(1) = M(i,j+2) + (M(i,j)-M(i,j+2))*A;
                 }
             }
 
@@ -382,7 +398,7 @@ class Burgers_Viscosa
                         u_gf = upwind.FSLS(U,n,i, u_gf,uBarra_f,uBarra_g);
                         float p1 = 0.5*delta_t*(1.0/deltaX)*(uBarra_f* u_gf(1) - uBarra_g * u_gf(0));
                         float p2 = (delta_t*visc/ (deltaX*deltaX))*(U(n,i+1)-2.0*U(n,i) + U(n,i-1));
-                        U(n+1,i)= U(n,i) + p1 +  p2;
+                        U(n+1,i)= U(n,i) - p1 +  p2;
 
                     }
                 }
@@ -402,7 +418,7 @@ class Burgers_Viscosa
 
                         u_gf = upwind.ADBQUICKEST(U,n,i, u_gf,uBarra_f, uBarra_g,theta);
 
-                        U(n+1,i)= U(n,i) + 0.5*delta_t*(1.0/deltaX)*(uBarra_f* u_gf(1) - uBarra_g * u_gf(0)) + (delta_t*visc/ (deltaX*deltaX))*(U(n,i+1) - 2*U(n,i) + U(n,i-1));
+                        U(n+1,i)= U(n,i) - 0.5*delta_t*(1.0/deltaX)*(uBarra_f* u_gf(1) - uBarra_g * u_gf(0)) + (delta_t*visc/ (deltaX*deltaX))*(U(n,i+1) - 2*U(n,i) + U(n,i-1));
 
                     }
                 }
@@ -459,55 +475,57 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
 
     FILE *arquivo;
-    Burgers_Viscosa Equacao;
 
-    Equacao.contornoInicio = 0;
-    Equacao.contornoFim = 0;
-
-    Equacao.cont_t= floor(Equacao.tempo/Equacao.delta_t)+1;
-    Equacao.contX = floor(Equacao.comprimento/Equacao.deltaX)+1;
-
-
-
-    VectorXf X(Equacao.contX);
-    VectorXf tempo(Equacao.cont_t);
-
-    for(int c=0;c<X.rows();c++)
+    while(true)
     {
-        //inicia o vetor X com a posição de cada nó do dominio 1D com a borda esquerda sendo a coordenada 0
-        if(c==0)
-        {
-            X[c]=0;
+        Burgers_Viscosa Equacao;
 
-        }else
-        {
-            X[c]=X[c-1]+Equacao.deltaX;
+        Equacao.contornoInicio = 0;
+        Equacao.contornoFim = 0;
 
+        Equacao.cont_t= floor(Equacao.tempo/Equacao.delta_t)+1;
+        Equacao.contX = floor(Equacao.comprimento/Equacao.deltaX)+1;
+
+
+
+        VectorXf X(Equacao.contX);
+        VectorXf tempo(Equacao.cont_t);
+
+        for(int c=0;c<X.rows();c++)
+        {
+            //inicia o vetor X com a posição de cada nó do dominio 1D com a borda esquerda sendo a coordenada 0
+            if(c==0)
+            {
+                X[c]=0;
+
+            }else
+            {
+                X[c]=X[c-1]+Equacao.deltaX;
+
+            }
         }
-    }
 
-    for(int c=0;c<tempo.rows();c++)
-    {
-        //inicia o vetor tempo com a posição de cada nó no decorrer do tempo
-        if(c==0)
+        for(int c=0;c<tempo.rows();c++)
         {
-            tempo[c]=0;
+            //inicia o vetor tempo com a posição de cada nó no decorrer do tempo
+            if(c==0)
+            {
+                tempo[c]=0;
 
-        }else
-        {
-            tempo[c]=tempo[c-1]+Equacao.delta_t;
+            }else
+            {
+                tempo[c]=tempo[c-1]+Equacao.delta_t;
 
+            }
         }
+
+        MatrixXf solucao = Equacao.CalculaEquacao(X);
+        cout <<solucao.rows()<<"x"<<solucao.cols()<<endl;
+        //ImprimeMatriz(solucao);
+
+        SalvaArquivo(solucao, arquivo, tempo, X);
+        SalvaArquivoSemTempo(solucao, arquivo, X);
     }
-
-    MatrixXf solucao = Equacao.CalculaEquacao(X);
-
-    //ImprimeMatriz(solucao);
-
-    SalvaArquivo(solucao, arquivo, tempo, X);
-
-
-
     return a.exec();
     //return 0;
 }
