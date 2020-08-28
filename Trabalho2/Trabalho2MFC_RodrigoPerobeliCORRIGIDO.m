@@ -67,15 +67,12 @@ NumMalhas = 5;
         rho2 = u2*dt/h;
         
         % condicoes de contorno
-        for cont = 1:numNos
-            %X:
-            w_meio(1,cont) = 2*pi*cos(pi*x(1))*cos(pi*y(cont))*exp(-2*pi*pi*t/Re);
-            w_meio(numNos,cont) = 2*pi*cos(pi*x(numNos))*cos(pi*y(cont))*exp(-2*pi*pi*t/Re);                
-            %Y:
-            w_meio(cont,1) = 2*pi*cos(pi*x(cont))*cos(pi*y(1))*exp(-2*pi*pi*t/Re);
-            w_meio(cont,numNos) = 2*pi*cos(pi*x(cont))*cos(pi*y(numNos))*exp(-2*pi*pi*t/Re);
+        for i = 1:numNos
+            w_meio(1,i) = 2*pi*cos(pi*x(1))*cos(pi*y(i))*exp(-2*pi*pi*t/Re);
+            w_meio(numNos,i) = 2*pi*cos(pi*x(numNos))*cos(pi*y(i))*exp(-2*pi*pi*t/Re);                
+            w_meio(i,1) = 2*pi*cos(pi*x(i))*cos(pi*y(1))*exp(-2*pi*pi*t/Re);
+            w_meio(i,numNos) = 2*pi*cos(pi*x(i))*cos(pi*y(numNos))*exp(-2*pi*pi*t/Re);  
         end
-        
         
         %METODO ADI
         %primeiro passo do ADI implicito em X
@@ -84,14 +81,15 @@ NumMalhas = 5;
                 a(1,i-1) = -1*(sigma/2+(rho1(i,j)/4));%diagonal inferior
                 b(1,i-1) = (1+sigma); %diagonal principal
                 c(1,i-1) = ((-sigma/2)+(rho1(i,j)/4));%diagonal superior           
-                %notar que o rho1 e rho2 variam de 2 até numNos-1
+            
                 f(i-1)= (1-sigma)*w(i,j)+ (sigma/2-rho2(i,j)/4)*w(i,j+1)+ ((sigma/2)+(rho2(i,j)/4))*w(i,j-1);
             end
             %COLOCAR AQUI OS TERMOS FONTE QDO i=1 E i=4
-            f(1) = f(1)+ w_meio(1,j)*((sigma/2)+(rho1(2,j)/4)); %rho1(1,j) faz parte do contorno
-            f(numNos-2) = f(numNos-2) - ((-sigma/2)+(rho1(numNos-1,j)/4))*w_meio(numNos,j); %rho1(numNos,j) faz parte do contorno
+            f(1) = f(1)+ w_meio(1,j)*((sigma/2)+(rho1(2,j)/4));
+            f(numNos-2) = f(numNos-2) - ((-sigma/2)+(rho1(numNos-1,j)/4))*w_meio(numNos,j);
             w_meio(2:numNos-1,j) = TDMAsolver(a,b,c,f);    
         end
+                
         t = t+dt/2;
         
         u1 = (-cos(pi*x(:))*sin(pi*y(:))')*exp(-2*pi*pi*t/Re);
@@ -102,13 +100,11 @@ NumMalhas = 5;
         rho2 = u2*dt/h;
         
         % condicoes de contorno
-        for cont = 1:numNos
-            %X:
-            w(1,cont) = 2*pi*cos(pi*x(1))*cos(pi*y(cont))*exp(-2*pi*pi*t/Re);
-            w(numNos,cont) = 2*pi*cos(pi*x(numNos))*cos(pi*y(cont))*exp(-2*pi*pi*t/Re);                
-            %Y:
-            w(cont,1) = 2*pi*cos(pi*x(cont))*cos(pi*y(1))*exp(-2*pi*pi*t/Re);
-            w(cont,numNos) = 2*pi*cos(pi*x(cont))*cos(pi*y(numNos))*exp(-2*pi*pi*t/Re);
+        for i = 1:numNos
+            w(1,i) = 2*pi*cos(pi*x(1))*cos(pi*y(i))*exp(-2*pi*pi*t/Re);
+            w(numNos,i) = 2*pi*cos(pi*x(numNos))*cos(pi*y(i))*exp(-2*pi*pi*t/Re);                
+            w(i,1) = 2*pi*cos(pi*x(i))*cos(pi*y(1))*exp(-2*pi*pi*t/Re);
+            w(i,numNos) = 2*pi*cos(pi*x(i))*cos(pi*y(numNos))*exp(-2*pi*pi*t/Re);  
         end
         
         %montando o termo fonte para o segundo passo do ADI implicito em Y
@@ -117,12 +113,12 @@ NumMalhas = 5;
                 a(1,j-1) = -1*(sigma/2+rho2(i,j)/4);%diagonal inferior
                 b(1,j-1) = (1+sigma); %diagonal principal
                 c(1,j-1) = (-sigma/2+rho2(i,j)/4);%diagonal superior    
-                %notar que o rho1 e rho2 variam de 2 até numNos-1 apenas
+            
                 f(j-1)= (1-sigma)*w_meio(i,j)+ (sigma/2-(rho1(i,j)/4))*w_meio(i+1,j)+ (sigma/2+(rho1(i,j)/4))*w_meio(i-1,j);
             end
             %COLOCAR AQUI OS TERMOS FONTE QDO i=1 E i=4
-            f(1) = f(1)+ w(i,1)*(sigma/2+rho2(i,2)/4); %rho2(i,2) faz parte do contorno
-            f(numNos-2) = f(numNos-2) - (-sigma/2+rho2(i,numNos-1)/4)*w(i,numNos); %rho2(i,numNos-1) faz parte do contorno
+            f(1) = f(1)+ w(i,1)*(sigma/2+rho2(i,2)/4);
+            f(numNos-2) = f(numNos-2) - (-sigma/2+rho2(i,numNos-1)/4)*w(i,numNos);
             w(i,2:numNos-1) = TDMAsolver(a,b,c,f);    
         end
     end
@@ -161,4 +157,5 @@ title("Solução exata");
 % xlabel("X");
 % ylabel("Y");
 % zlabel("\omega");
-% title("Condição inicial")
+% title("Condição inicial");   
+  
