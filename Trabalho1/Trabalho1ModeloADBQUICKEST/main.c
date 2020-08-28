@@ -1,6 +1,6 @@
 /*Rafael Alves Bonfim de Queiroz*/
 /*Código Revisado 04/08/2020 */
-
+/*Modificado por Rodrigo Perobeli*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -50,7 +50,7 @@ int main(){
         yn = (int)(t/deltat);
 
         printf("\n Esquema (1) - ADBQUICKEST");
-        printf("\n Esquema (2) - Esquema que implementou");
+        printf("\n Esquema (2) - FSLS");
 
         printf("\n Informe numero do esquema: ");
         scanf("%d",&esquema);
@@ -108,7 +108,11 @@ int main(){
                         }
                         else if (esquema == 2){
                                 //Esquema que implementou
+                                float A = (-2.0*1.5+4.0)*pow(fiu,4.0) + (4.0*1.5-8.0)*pow(fiu,3.0)+ ((-5.0*1.5+8.0)/2.0)*pow(fiu,2.0)+ ((1.5+2.0)/2.0)*fiu;
+                                phiF = u[i-1] + (u[i+1]-u[i-1])*A;
+                                aux1 = ubarra1*phiF;
                             }
+
 
                             }
                     }
@@ -139,6 +143,9 @@ int main(){
                             }
                             else if (esquema == 2){
                                     //equema que implementou
+                                float A = (-2.0*1.5+4.0)*pow(fiu,4.0) + (4.0*1.5-8.0)*pow(fiu,3.0)+ ((-5.0*1.5+8.0)/2.0)*pow(fiu,2.0)+ ((1.5+2.0)/2.0)*fiu;
+                                phiF = u[i+2] + (u[i]-u[i+2])*A;
+                                aux1 = ubarra1*phiF;
                             }
                         }
                             }
@@ -170,6 +177,9 @@ int main(){
                             }
                                 else if (esquema == 2){
                                     //Esquema que implementou
+                                    float A = (-2.0*1.5+4.0)*pow(fiu,4.0) + (4.0*1.5-8.0)*pow(fiu,3.0)+ ((-5.0*1.5+8.0)/2.0)*pow(fiu,2.0)+ ((1.5+2.0)/2.0)*fiu;
+                                    phiF = u[i-2] + (u[i]-u[i-2])*A;
+                                    aux2 = ubarra2*phiF;
                                 }
                                 }
                         }
@@ -196,7 +206,10 @@ int main(){
                                                         aux2 = ubarra2* phiF;
                         }
                         else if (esquema == 2){
-                                //Esquema que implementou
+                            //Esquema que implementou
+                            float A = (-2.0*1.5+4.0)*pow(fiu,4.0) + (4.0*1.5-8.0)*pow(fiu,3.0)+ ((-5.0*1.5+8.0)/2.0)*pow(fiu,2.0)+ ((1.5+2.0)/2.0)*fiu;
+                            phiF = u[i+1] + (u[i-1]-u[i+1])*A;
+                            aux2 = ubarra2*phiF;
                         }
                         }
                         }
