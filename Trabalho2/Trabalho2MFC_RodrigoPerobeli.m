@@ -19,13 +19,13 @@ NumMalhas = 5;
     %O número de elementos deve ser definido de forma que possa ser variável
     %para depois fazer a convergência
     numElementos = 2^(k+1);
-    %numElementos = 32;
+%     numElementos = 32;
     numNos = numElementos+1;
     %Dimensão do elemento
     h = (Xf-Xi)/numElementos;
     h2 = h*h;
     %passo temporal
-    dt = h;
+    dt = h2;
     %numero de Reynolds
     Re = 20;                       %MUDAR
     %Re =1;
